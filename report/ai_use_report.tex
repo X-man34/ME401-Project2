@@ -1,0 +1,196 @@
+\documentclass[12pt, letterpaper]{article}
+
+% --- Packages ---
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{parskip}
+
+% --- Page style ---
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{ME 401 -- Project 2}
+\lhead{AI Use Documentation}
+\cfoot{\thepage}
+\onehalfspacing
+
+% --- Title ---
+\title{%
+  \textbf{Documentation of Artificial Intelligence Use} \\[0.5em]
+  \large ME 401 Thermodynamics III -- Project 2 \\
+  Boise State University
+}
+\author{Caleb H.}
+\date{April 2026}
+
+\begin{document}
+
+\maketitle
+
+% ============================================================================
+\section{Overview}
+% ============================================================================
+
+Artificial intelligence tools were used extensively throughout this project. This report provides a transparent account of how AI was employed, what it produced, what was accepted or modified, and what that experience reveals about AI as an engineering tool. Three distinct AI-assisted sessions are documented, covering initial project implementation, system diagram generation, and report revision.
+
+The primary tool was \textbf{Claude Code} (Anthropic), a command-line AI coding assistant running the Opus 4.6 model for the first session and Sonnet 4.6 for the third session. The system flow diagram was generated using a web-based generative AI tool in a separate session. All transcript records are preserved in the \texttt{AI\_transcripts/} directory of the project repository.
+
+% ============================================================================
+\section{Session 1: Initial Project Implementation}
+% ============================================================================
+
+\subsection{Context and Intent}
+
+The first AI session took place at the very start of the project. No code, tests, or report existed. The goal was to use AI to generate the complete deliverable set in a single session: a Python simulation of the coupled digester--CHP system, unit tests, a parametric analysis driver, documentation files, and a LaTeX technical report.
+
+\subsection{Prompting Strategy}
+
+The session began with a single, detailed prompt that specified the deliverables, provided pseudocode for the class structure, attached the project instructions and reference paper, and gave explicit baseline parameters from the literature (methane production rate of 0.4~m$^3$~CH$_4$/m$^3$/day; VFA concentration of 4.0~g~COD/L). The AI was instructed to review the materials, present a full implementation plan with clarifying questions, and then wait for approval before implementing.
+
+This approach---requesting a plan and questions before implementation---proved effective. The AI identified six decision points that required human input before code could be written:
+
+\begin{enumerate}[noitemsep]
+    \item Cycle type (steam Rankine vs.\ gas turbine vs.\ internal combustion engine)
+    \item Plant scale and baseline reactor volume
+    \item Optimization objective (self-sufficiency, max power, or max efficiency)
+    \item Grid comparison assumptions (electricity cost, carbon intensity)
+    \item Scope of unit tests
+    \item Steady-state vs.\ transient simulation approach
+\end{enumerate}
+
+These were answered in a single follow-up prompt, after which implementation proceeded without further interruption.
+
+\subsection{What the AI Produced}
+
+After receiving answers to its clarifying questions and a final ``go for it'' approval, the AI generated:
+
+\begin{itemize}[noitemsep]
+    \item \textbf{src/digester.py}: CSTR digester model with HRT, OLR, methane production, biogas energy, sludge heating demand, and wall heat loss calculations (170 lines)
+    \item \textbf{src/cogeneration.py}: 8-state steam Rankine CHP model using CoolProp for thermodynamic state evaluation, with iterative extraction fraction solver (309 lines)
+    \item \textbf{src/driver.py}: Parametric sweeps over reactor volume, boiler pressure, and extraction pressure; three optimization runs (self-sufficiency, max power, max efficiency); six matplotlib figures; JSON output (776 lines)
+    \item \textbf{tests/}: 59 unit tests across three files covering the digester model, CHP thermodynamic calculations, energy balance closure, and system integration
+    \item \textbf{AGENTS.md}, \textbf{README.md}: Documentation files
+    \item \textbf{report/report.tex}: Full LaTeX technical report (~540 lines)
+\end{itemize}
+
+All 59 tests passed on the first run. The simulation ran successfully and produced all six figures and the JSON output file.
+
+\subsection{Human Oversight and Verification}
+
+The following items were reviewed and verified by the student:
+
+\begin{itemize}[noitemsep]
+    \item \textbf{Baseline parameters}: Confirmed that the methane production rate and VFA concentration matched the assigned reference paper values.
+    \item \textbf{Energy balance}: Verified algebraically that the first law closes across the full Rankine cycle (boiler input equals sum of turbine work, process heat, and condenser rejection).
+    \item \textbf{Turbine model}: The AI applied isentropic efficiency to each turbine stage independently using the actual (irreversible) state at the extraction point as the inlet to the second stage. This is thermodynamically correct but is a non-obvious choice; it was confirmed as intentional.
+    \item \textbf{Simulation results}: Numerical outputs (104~kW net electrical, 54.2\% CHP efficiency, 2.9-year payback) were spot-checked against hand calculations and found consistent.
+\end{itemize}
+
+One concern about the math audit is worth noting: the same AI model that generated the code also performed the audit in a later session. This limits the independence of the review. Key equations were therefore verified manually.
+
+% ============================================================================
+\section{Session 2: System Flow Diagram Generation}
+% ============================================================================
+
+\subsection{Context and Intent}
+
+After the initial report was drafted, the text-based system diagram (a plain \LaTeX\ \texttt{fbox} placeholder) needed to be replaced with a professional engineering figure. This was done in a separate session using a web-based generative AI image tool.
+
+\subsection{Prompting and Iteration}
+
+The first attempt---asking the AI to generate a diagram directly from the report---produced a result the student described as unsatisfactory ("that's crap"). Several issues were evident: the diagram was generic and did not reflect the specific coupling between the digester and the Rankine cycle, and it lacked the required components (process heater, mixing chamber, extraction branch).
+
+The prompting strategy was then changed. Rather than asking for an image directly, the student:
+
+\begin{enumerate}[noitemsep]
+    \item Sketched the desired diagram by hand.
+    \item Asked the AI to write a detailed textual description of the hand sketch, structured as a prompt for image generation.
+    \item Used that structured description to generate the final diagram.
+    \item Made one refinement: removing a boundary label ("System to analyze") and its dashed border.
+\end{enumerate}
+
+This two-step approach---using AI to translate a hand sketch into a structured prompt, then using that prompt to generate the final image---was substantially more effective than direct text-to-image generation. The student's hand sketch served as the ground truth; the AI's role was transcription and formatting, not design.
+
+\subsection{Final Result}
+
+The final \texttt{System\_flow\_diagram.png} correctly depicts the coupled system: waste sludge input at top, digester producing biogas to the boiler, steam flowing through the turbine with an extraction branch to the process heater, exhaust steam condensing and returning via two pumps and a mixing junction, and electricity output labeled at the turbine. The diagram was used in the final report.
+
+% ============================================================================
+\section{Session 3: Report Revision}
+% ============================================================================
+
+\subsection{Context and Intent}
+
+The third session occurred near project completion. The technical report (v1) existed but required several targeted improvements before submission. The session used Claude Code running Sonnet 4.6.
+
+\subsection{Tasks and Outcomes}
+
+A single structured prompt enumerated eight specific tasks. The AI completed all of them:
+
+\begin{itemize}[noitemsep]
+    \item \textbf{Math audit}: Reviewed both Python simulation files; confirmed all calculations correct with no errors found.
+    \item \textbf{Abstract}: Removed a reference to CoolProp, which was too implementation-specific for an abstract.
+    \item \textbf{Citation verification}: Confirmed that the primary source (N\'{a}thia-Neves et al., 2018) is physically present in the \texttt{Resources/} directory.
+    \item \textbf{Section removal}: Deleted the Tools and Software subsection (2.6) and the AI Use Documentation section from the main report body.
+    \item \textbf{Number density}: Reduced inline number listing in several paragraphs (energy balance, grid comparison, breakeven analysis), directing readers to figures and tables instead.
+    \item \textbf{System diagram}: Replaced the placeholder \texttt{fbox} diagram with \texttt{System\_flow\_diagram.png}.
+    \item \textbf{Version control}: Created \texttt{report\_v2.tex} as the working copy without modifying the original.
+    \item \textbf{Citation bug}: Fixed a \texttt{{\textbackslash}citet} rendering failure caused by a conflict between natbib's numbers mode and a manually authored bibliography.
+\end{itemize}
+
+\subsection{Citation Fix Detail}
+
+The citation bug is worth describing because it illustrates both a strength and a limitation of AI-assisted \LaTeX\ editing. The original code used \texttt{{\textbackslash}citet\{nathia2018\}}, which is the author--year citation command in the natbib package. However, the document declared \texttt{{\textbackslash}usepackage[numbers]\{natbib\}} and used a manual \texttt{thebibliography} environment rather than BibTeX. In this configuration, natbib cannot extract author names from \texttt{{\textbackslash}bibitem} entries, causing the command to render incorrectly.
+
+The AI correctly diagnosed this conflict and replaced \texttt{{\textbackslash}citet\{nathia2018\}} with the author name written explicitly alongside \texttt{{\textbackslash}citep\{nathia2018\}}, producing the correct output. This fix was applied correctly on the first attempt.
+
+% ============================================================================
+\section{Analysis and Reflection}
+% ============================================================================
+
+\subsection{What Worked Well}
+
+\textbf{Structured, front-loaded prompts produced the best results.} The most productive session (Session 1) began with a detailed prompt that specified deliverables, attached reference material, provided pseudocode, and gave explicit baseline parameters. The AI's plan-first approach further reduced ambiguity before implementation began. Sessions where prompts were vague or iterative (Session 2, early image generation) required more back-and-forth.
+
+\textbf{AI excels at implementation given a clear specification.} The AI generated 1,255 lines of correct, tested Python code and a complete LaTeX report in a single session. For structured technical tasks with well-defined outputs (classes, equations, figure formatting), the AI's output was production-quality with minimal revision.
+
+\textbf{Debugging and targeted edits were reliable.} The citation fix (Session 3) and the iterative diagram refinement (Session 2) both converged quickly. The AI correctly identified the root cause of the rendering error on the first attempt.
+
+\subsection{Limitations Observed}
+
+\textbf{AI cannot independently verify its own work.} The same model that generated the simulation code also audited it in Session 3. While the code was in fact correct, this does not constitute independent review. For work where correctness is critical, human verification of key equations remains necessary.
+
+\textbf{Image generation required substantial human direction.} The system flow diagram required a hand sketch and a two-step prompting process before a usable result was produced. Direct text-to-image generation from a written description did not capture the specific thermodynamic topology of the system. The AI was more useful as a translator (sketch~$\rightarrow$~structured prompt) than as a designer.
+
+\textbf{AI-generated reports require editorial judgment.} The initial LaTeX report (v1) was technically accurate but contained excessive inline numbers, a section of implementation detail inappropriate for the abstract, and an AI documentation section that belonged in a separate document. These were not errors in the strict sense but reflected a lack of editorial judgment about what a reader needs. Human review and revision were necessary to improve the document's readability.
+
+\subsection{Role of Human Contribution}
+
+Across all sessions, the student's contributions were:
+
+\begin{itemize}[noitemsep]
+    \item Selecting the project topic and defining the system boundaries
+    \item Identifying and specifying the baseline parameters from the assigned literature
+    \item Making the key architectural decisions (steam Rankine cycle, CSTR digester, self-sufficiency as primary optimization objective)
+    \item Evaluating simulation results for physical reasonableness
+    \item Providing the hand sketch that grounded the system flow diagram
+    \item Identifying quality issues in the initial report and specifying targeted corrections
+    \item Verifying critical equations manually
+\end{itemize}
+
+The AI's role was implementation and execution. All design decisions, parameter choices, and quality judgments originated with the student.
+
+% ============================================================================
+\section{Conclusion}
+% ============================================================================
+
+AI tools substantially accelerated this project. Tasks that would have taken many hours---implementing a thermodynamically correct 8-state Rankine cycle model, writing 59 unit tests, formatting a complete LaTeX report---were completed within a single session. The AI produced correct, working output when given well-specified instructions and reference material.
+
+At the same time, AI use required active human oversight at every stage. Results had to be verified against the literature and by hand calculation. Editorial judgment was needed to improve report quality. Image generation required iterative refinement grounded in a human sketch. The most accurate description of the human--AI collaboration in this project is that the student acted as an engineer and editor, while the AI acted as a skilled but unsupervised draftsperson: fast, capable, and requiring direction and review.
+
+\end{document}

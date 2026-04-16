@@ -9,9 +9,9 @@ This project models a wastewater treatment plant that uses **anaerobic digestion
 
 ## System Description
 
-1. **Anaerobic Digester (CSTR)**: Wastewater sludge enters a continuously stirred tank reactor operating at mesophilic conditions (35 C). Organic matter is broken down by anaerobic bacteria, producing biogas (60% methane, 40% CO2) at a rate of 0.4 m3 CH4 per m3 of reactor volume per day.
+1. **Anaerobic Digester (CSTR)**: Wastewater sludge enters a continuously stirred tank reactor operating at mesophilic conditions (35°C). Organic matter is broken down by anaerobic bacteria, producing biogas (60% methane, 40% CO2) at a rate of 0.4 m³ CH4 per m³ of reactor volume per day.
 
-2. **Cogeneration Plant (Steam Rankine)**: Biogas is combusted in a boiler to produce superheated steam (6 MPa, 450 C). Steam expands through an extraction turbine -- part is bled off at intermediate pressure (500 kPa) to provide process heat for digester heating, and the remainder expands to condenser pressure (10 kPa). All thermodynamic states are computed using CoolProp.
+2. **Cogeneration Plant (Steam Rankine)**: Biogas is combusted in a boiler to produce superheated steam (6 MPa, 450°C). Steam expands through an extraction turbine — part is bled off at intermediate pressure (500 kPa) to provide process heat for digester heating, and the remainder expands to condenser pressure (10 kPa).
 
 3. **Coupling**: The CHP extraction fraction is solved iteratively so that process heat delivered equals digester heating demand (sludge warming + wall losses).
 
@@ -35,43 +35,54 @@ python -m pytest tests/ -v
 ## Project Structure
 
 ```
-ME401 Project2/
+ME401-Project2/
     src/
-        digester.py          # Anaerobic digester model
-        cogeneration.py      # Steam Rankine CHP model (CoolProp)
-        driver.py            # Simulation driver, sweeps, optimization, plots
+        digester.py           # Anaerobic digester CSTR model
+        cogeneration.py       # Steam Rankine CHP model
+        driver.py             # Simulation driver, sweeps, optimization, plots
     tests/
-        test_digester.py     # 21 digester unit tests
-        test_cogeneration.py # 28 CHP unit tests
-        test_integration.py  # 10 integration tests
+        test_digester.py      # 21 digester unit tests
+        test_cogeneration.py  # 28 CHP unit tests
+        test_integration.py   # 10 integration tests
     report/
-        report.tex           # LaTeX technical report
+        report.tex            # Original LaTeX technical report (v1)
+        report_v2.tex         # Revised technical report (v2, use this one)
+        ai_use_report.tex     # AI use documentation report
+        System_flow_diagram.png
     output/
-        fig1_volume_sweep.png/pdf
-        fig2_boiler_pressure.png/pdf
-        fig3_extraction_pressure.png/pdf
-        fig4_energy_balance.png/pdf
-        fig5_grid_comparison.png/pdf
-        fig6_breakeven_population.png/pdf
+        fig1_volume_sweep.pdf
+        fig2_boiler_pressure.pdf
+        fig3_extraction_pressure.pdf
+        fig4_energy_balance.pdf
+        fig5_grid_comparison.pdf
+        fig6_breakeven_population.pdf
         simulation_results.json
-    Resources/               # Reference papers and project instructions
-    AGENTS.md                # AI agent context
-    README.md                # This file
-    requirements.txt         # Python dependencies
+    Resources/
+        Nthia-Neves2018_Article_...pdf   # Primary reference paper
+        Project 2-1Instructions.pdf
+        AI-prompts-log.md                # AI use log (course requirement)
+    AI_transcripts/                      # Records of all AI sessions
+    AGENTS.md
+    README.md
+    requirements.txt
 ```
 
-## Key Results
+## Key Results (Baseline: 3,000 m³ reactor, 100,000 population)
 
-The simulation answers three central questions from the project brief:
+| Output | Value |
+|--------|-------|
+| Net electrical output | 104 kW |
+| Process heat delivered | 166 kW |
+| Electrical efficiency | 20.9% |
+| CHP efficiency | 54.2% |
+| Grid offset | 41.6% |
+| Simple payback period | 2.9 years |
+| CO₂ avoided (annual) | 365 tonnes |
 
-1. **Is biogas energy enough to power the plant?** Depends on scale. A 3,000 m3 reactor serving ~100,000 people can offset roughly 50-60% of plant electricity demand.
-
-2. **How much grid electricity can be offset?** At baseline conditions, the CHP produces ~130 kW of net electrical power against a ~250 kW plant demand.
-
-3. **What reactor volume achieves self-sufficiency?** Optimization finds the breakeven volume where CHP output equals WWTP electricity consumption.
+**Self-sufficiency** requires a reactor volume of ~7,157 m³ (serving ~240,000 people).
 
 ## References
 
-- Nathia-Neves et al. (2018). "Anaerobic digestion process: technological aspects and recent developments." *Int. J. Environ. Sci. Technol.*
-- Cengel & Boles, *Thermodynamics: An Engineering Approach* (Rankine cycle theory)
-- CoolProp thermodynamic library (coolprop.org)
+- Náthia-Neves et al. (2018). "Anaerobic digestion process: technological aspects and recent developments." *Int. J. Environ. Sci. Technol.*, 15, 2033–2046.
+- Çengel & Boles, *Thermodynamics: An Engineering Approach*, 8th ed. McGraw-Hill, 2015.
+- Bell et al. (2014). "CoolProp: An open-source thermophysical property library." *Ind. Eng. Chem. Res.*, 53(6), 2498–2508.
